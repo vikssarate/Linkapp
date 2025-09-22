@@ -1,9 +1,117 @@
 <!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My Links</title>
-<h1>My Links</h1>
-<ul>
-  <li><a href="https://app.techstudy.me/">TechStudy – Home</a></li>
-  <li><a href="https://app.techstudy.me/some/path">Lesson 1</a></li>
-  <li><a href="https://app.techstudy.me/another/path">Lesson 2</a></li>
-</ul>
+<title>My Study Links</title>
+<style>
+  :root{--bg:#0f1220;--card:#181c2f;--ink:#eef1ff;--muted:#9aa3c7;--line:#2a3052;--accent:#6ca8ff}
+  html,body{height:100%} body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+  .wrap{max-width:800px;margin:0 auto;padding:16px}
+  h1{font-size:20px;margin:0 0 12px}
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 16px}
+  select,input{background:#0b1020;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  select{min-width:220px}
+  input[type=search]{flex:1;min-width:160px}
+  ul{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+  li a{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+       color:#8fb5ff;text-decoration:none;font-weight:600}
+  li a small{display:block;color:var(--muted);font-weight:400;margin-top:4px}
+  .muted{color:var(--muted);font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>My Study Links</h1>
+
+  <div class="bar">
+    <label for="subject"><strong>Subject:</strong></label>
+    <select id="subject" aria-label="Choose subject"></select>
+    <input id="search" type="search" placeholder="Filter links… (optional)" autocomplete="off">
+  </div>
+
+  <ul id="linkList"></ul>
+  <div id="empty" class="muted" hidden>No links match.</div>
+
+  <p class="muted">Tip: save this file as <em>Links.html</em> in your phone’s Files/Downloads. You can add it to your Home Screen for quick access.</p>
+</div>
+
+<script>
+/* === EDIT ME: Put your subjects/links here ===============================
+   - Each key is a Subject name.
+   - Each item needs a title and url.
+=========================================================================== */
+const SUBJECTS = {
+  "TechStudy": [
+    { title: "TechStudy – Home", url: "https://app.techstudy.me/" },
+    { title: "Lesson 1",         url: "https://app.techstudy.me/some/path" },
+    { title: "Lesson 2",         url: "https://app.techstudy.me/another/path" }
+  ],
+
+  // Examples — replace with your own
+  "Grammar": [
+    { title: "Tenses overview",  url: "https://app.techstudy.me/grammar/tenses" },
+    { title: "Articles (a/an/the)", url: "https://app.techstudy.me/grammar/articles" }
+  ],
+  "Vocabulary": [
+    { title: "Daily words",      url: "https://app.techstudy.me/vocab/daily" }
+  ]
+};
+
+// ---- App logic (no edits needed) ----
+const subjectSel = document.getElementById('subject');
+const listEl     = document.getElementById('linkList');
+const emptyEl    = document.getElementById('empty');
+const searchEl   = document.getElementById('search');
+const LS_KEY     = 'links.lastSubject';
+
+function populateSubjects() {
+  subjectSel.innerHTML = '';
+  Object.keys(SUBJECTS).sort().forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    subjectSel.appendChild(opt);
+  });
+  const last = localStorage.getItem(LS_KEY);
+  if (last && SUBJECTS[last]) subjectSel.value = last;
+}
+
+function render() {
+  const subj = subjectSel.value;
+  localStorage.setItem(LS_KEY, subj);
+
+  const q = searchEl.value.trim().toLowerCase();
+  const links = (SUBJECTS[subj] || []).filter(x =>
+    !q || x.title.toLowerCase().includes(q) || x.url.toLowerCase().includes(q)
+  );
+
+  listEl.innerHTML = '';
+  links.forEach(item => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <a href="${item.url}" target="_blank" rel="noopener">
+        ${escapeHtml(item.title)}
+        <small>${item.url}</small>
+      </a>`;
+    listEl.appendChild(li);
+  });
+
+  emptyEl.hidden = links.length > 0;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({
+    '&': '&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+// Events
+subjectSel.addEventListener('change', render);
+searchEl.addEventListener('input', render);
+
+// Init
+populateSubjects();
+render();
+</script>
+</body>
+</html>
